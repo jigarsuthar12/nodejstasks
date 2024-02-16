@@ -17,7 +17,7 @@ app.use(authRoutes);
 mongoose
   .connect(process.env.MONGODB_URI)
   .then((result) => {
-    app.listen(4000, () => {
+    app.listen(5000, () => {
       console.log(`good to go with express.js`);
     });
   })

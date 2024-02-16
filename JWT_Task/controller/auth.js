@@ -1,16 +1,19 @@
-const crypto = require("crypto");
+const express = require("express");
+const app = express();
 const bcrypt = require("bcryptjs");
 const nodemailer = require("nodemailer");
 const User = require("../models/user");
 const jwt = require("jsonwebtoken");
-const secretkey = "jigar*543";
+const cookieParser = require("cookie-parser");
+app.use(cookieParser());
 
+const secretkey = "jigar*543";
 const transporter = nodemailer.createTransport({
   host: "smtp.ethereal.email",
   port: 587,
   auth: {
-    user: "cheyenne.kshlerin@ethereal.email",
-    pass: "YVVAaWSVrtTJUmYWAa",
+    user: "edgardo.halvorson2@ethereal.email",
+    pass: "5c42AwNyG6rmSnXr8a",
   },
 });
 exports.getLogin = (req, res, next) => {
@@ -64,10 +67,9 @@ exports.postLogin = (req, res, next) => {
         return res.status(401).send("Password Does not match");
       }
 
-      const token = jwt.sign({ userId: user._id }, secretkey, {
+      const token = jwt.sign({ email }, secretkey, {
         expiresIn: "1h",
       });
-
       return res.status(200).send(token);
     })
     .then((result) => {
@@ -95,8 +97,6 @@ exports.postReset = (req, res, next) => {
         expiresIn: "1h",
       });
 
-      user.resetToken = token;
-      user.resetTokenExpiration = Date.now() + 3600000;
       return user.save();
     })
     .then((result) => {
@@ -108,8 +108,49 @@ exports.postReset = (req, res, next) => {
         text: "Password Reset",
         html: `
             <p>You requested a password reset</p>
-            <p>Click this <a href = "http://localhost:3000/reset/${token}">link</a> to set a new password</p>
+            <p>Click this <a href = 'http://localhost:5000/reset/${token}'>link</a> to set a new password</p>
           `,
       });
     });
+};
+
+exports.getNewPassword = (req, res, next) => {
+  const token = req.params.token;
+  User.findOne({ userId: User._id })
+    .then((user) => {
+      if (!user) {
+        console.log("not getting user");
+      }
+
+      res.cookie("token", token);
+      res.render("auth/new-password", {
+        path: "/new-password",
+        pageTitle: "Reset Password",
+        userId: user._id.toString(),
+      });
+    })
+    .catch((err) => console.error(err));
+};
+
+exports.postNewPassword = (req, res, next) => {
+  const newPassword = req.body.password;
+  const token = req.Cookies;
+
+  const decoded = jwt.verify(token, secretkey);
+
+  let resetUser;
+  User.findOne({ userId: decoded._id })
+    .then((user) => {
+      resetUser = user;
+      return bcrypt.hash(newPassword, 12);
+    })
+    .then((hashedPassword) => {
+      resetUser.password = hashedPassword;
+      return resetUser.save();
+    })
+    .then((result) => {
+      console.log("user is updated!!");
+      res.redirect("/login");
+    })
+    .catch((err) => console.error(err));
 };
