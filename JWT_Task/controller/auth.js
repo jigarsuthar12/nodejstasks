@@ -5,15 +5,15 @@ const nodemailer = require("nodemailer");
 const User = require("../models/user");
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
+const secretkey = "jigar";
 app.use(cookieParser());
 
-const secretkey = "jigar*543";
 const transporter = nodemailer.createTransport({
   host: "smtp.ethereal.email",
   port: 587,
   auth: {
-    user: "edgardo.halvorson2@ethereal.email",
-    pass: "5c42AwNyG6rmSnXr8a",
+    user: "heidi.pfeffer@ethereal.email",
+    pass: "SaC1ryqHSdHxHD2aXD",
   },
 });
 exports.getLogin = (req, res, next) => {
@@ -73,7 +73,6 @@ exports.postLogin = (req, res, next) => {
       return res.status(200).send(token);
     })
     .then((result) => {
-      console.log(result);
       res.redirect("/login");
     })
     .catch((err) => console.error(err));
