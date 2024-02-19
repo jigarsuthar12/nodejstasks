@@ -1,12 +1,10 @@
 const express = require("express");
 const app = express();
-const bcrypt = require("bcryptjs");
+const bcrypt = require("bcrypt");
 const nodemailer = require("nodemailer");
 const User = require("../models/user");
 const jwt = require("jsonwebtoken");
-const cookieParser = require("cookie-parser");
 const secretkey = "jigar";
-app.use(cookieParser());
 
 const transporter = nodemailer.createTransport({
   host: "smtp.ethereal.email",
@@ -40,7 +38,7 @@ exports.postSignUp = (req, res, next) => {
         return res.redirect("/signup");
       }
       return bcrypt
-        .hash(password, 12)
+        .hash(password, 10)
         .then((hashedPassword) => {
           const user = new User({ email: email, password: hashedPassword });
           return user.save();
@@ -87,12 +85,13 @@ exports.getReset = (req, res, next) => {
 
 exports.postReset = (req, res, next) => {
   let token = "";
+  const email = req.body.email;
   User.findOne({ email: req.body.email })
     .then((user) => {
       if (!user) {
         return res.status(401).send("Could not find user!!");
       }
-      token = jwt.sign({ userId: user._id }, secretkey, {
+      token = jwt.sign({ email }, secretkey, {
         expiresIn: "1h",
       });
 
@@ -120,36 +119,39 @@ exports.getNewPassword = (req, res, next) => {
       if (!user) {
         console.log("not getting user");
       }
-
-      res.cookie("token", token);
-      res.render("auth/new-password", {
-        path: "/new-password",
+      res.render(`auth/newPassword`, {
+        path: "/newPassword",
         pageTitle: "Reset Password",
-        userId: user._id.toString(),
+        userId: user._id,
+        token: token,
       });
     })
     .catch((err) => console.error(err));
 };
 
 exports.postNewPassword = (req, res, next) => {
-  const newPassword = req.body.password;
-  const token = req.Cookies;
+  const { password } = req.body;
+  const token = req.params.token;
 
   const decoded = jwt.verify(token, secretkey);
-
-  let resetUser;
-  User.findOne({ userId: decoded._id })
-    .then((user) => {
-      resetUser = user;
-      return bcrypt.hash(newPassword, 12);
-    })
-    .then((hashedPassword) => {
-      resetUser.password = hashedPassword;
-      return resetUser.save();
-    })
-    .then((result) => {
-      console.log("user is updated!!");
-      res.redirect("/login");
-    })
-    .catch((err) => console.error(err));
+  if (decoded) {
+    console.log("user is verified");
+    let resetUser;
+    User.findOne({ userId: User._id })
+      .then((user) => {
+        resetUser = user;
+        return bcrypt.hash(password, 12);
+      })
+      .then((hashedPassword) => {
+        resetUser.password = hashedPassword;
+        return resetUser.save();
+      })
+      .then((result) => {
+        console.log("user is updated!!");
+        res.redirect("/login");
+      })
+      .catch((err) => console.error(err));
+  } else {
+    console.error("user is not verified");
+  }
 };
