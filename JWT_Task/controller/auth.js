@@ -1,19 +1,11 @@
 const express = require("express");
 const app = express();
 const bcrypt = require("bcrypt");
-const nodemailer = require("nodemailer");
 const User = require("../models/user");
 const jwt = require("jsonwebtoken");
+const transporter = require("../helper/transporter");
 const secretkey = "jigar";
 
-const transporter = nodemailer.createTransport({
-  host: "smtp.ethereal.email",
-  port: 587,
-  auth: {
-    user: "heidi.pfeffer@ethereal.email",
-    pass: "SaC1ryqHSdHxHD2aXD",
-  },
-});
 exports.getLogin = (req, res, next) => {
   res.render("auth/login", {
     path: "/login",
@@ -29,9 +21,8 @@ exports.getSignUp = (req, res, next) => {
 };
 
 exports.postSignUp = (req, res, next) => {
-  const email = req.body.email;
-  const password = req.body.password;
-  User.findOne({ email: email })
+  const { email, password, firstName, lastName, contact, address } = req.body;
+  User.findOne({ email })
     .then((userDoc) => {
       if (userDoc) {
         res.status(401).send("Email exist already");
@@ -40,7 +31,14 @@ exports.postSignUp = (req, res, next) => {
       return bcrypt
         .hash(password, 10)
         .then((hashedPassword) => {
-          const user = new User({ email: email, password: hashedPassword });
+          const user = new User({
+            email: email,
+            firstname: firstName,
+            lastname: lastName,
+            contactnum: contact,
+            password: hashedPassword,
+            address: address,
+          });
           return user.save();
         })
         .then((result) => {
@@ -52,9 +50,8 @@ exports.postSignUp = (req, res, next) => {
 };
 
 exports.postLogin = (req, res, next) => {
-  const email = req.body.email;
-  const password = req.body.password;
-  User.findOne({ email: email })
+  const { email, password } = req.body;
+  User.findOne({ email })
     .then((user) => {
       if (!user) {
         return res.status(401).send("User does not exist");
@@ -85,13 +82,14 @@ exports.getReset = (req, res, next) => {
 
 exports.postReset = (req, res, next) => {
   let token = "";
-  const email = req.body.email;
-  User.findOne({ email: req.body.email })
+  const { email } = req.body;
+  User.findOne({ email })
     .then((user) => {
+      const userId = user._id;
       if (!user) {
         return res.status(401).send("Could not find user!!");
       }
-      token = jwt.sign({ email }, secretkey, {
+      token = jwt.sign({ email, userId }, secretkey, {
         expiresIn: "1h",
       });
 
@@ -113,31 +111,23 @@ exports.postReset = (req, res, next) => {
 };
 
 exports.getNewPassword = (req, res, next) => {
-  const token = req.params.token;
-  User.findOne({ userId: User._id })
-    .then((user) => {
-      if (!user) {
-        console.log("not getting user");
-      }
-      res.render(`auth/newPassword`, {
-        path: "/newPassword",
-        pageTitle: "Reset Password",
-        userId: user._id,
-        token: token,
-      });
-    })
-    .catch((err) => console.error(err));
+  const { token } = req.params;
+  res.render(`auth/newPassword`, {
+    path: "/newPassword",
+    pageTitle: "Reset Password",
+    token: token,
+  });
 };
 
 exports.postNewPassword = (req, res, next) => {
   const { password } = req.body;
-  const token = req.params.token;
+  const { token } = req.params;
 
   const decoded = jwt.verify(token, secretkey);
   if (decoded) {
     console.log("user is verified");
     let resetUser;
-    User.findOne({ userId: User._id })
+    User.findOne({ _id: decoded.userId })
       .then((user) => {
         resetUser = user;
         return bcrypt.hash(password, 12);
