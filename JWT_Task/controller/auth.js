@@ -51,24 +51,31 @@ exports.postSignUp = (req, res, next) => {
 
 exports.postLogin = (req, res, next) => {
   const { email, password } = req.body;
+
   User.findOne({ email })
     .then((user) => {
       if (!user) {
         return res.status(401).send("User does not exist");
       }
-
-      const passwordMatch = bcrypt.compare(password, user.password);
-      if (!passwordMatch) {
-        return res.status(401).send("Password Does not match");
-      }
-
-      const token = jwt.sign({ email }, secretkey, {
-        expiresIn: "1h",
-      });
-      return res.status(200).send(token);
-    })
-    .then((result) => {
-      res.redirect("/login");
+      // const passwordMatch = bcrypt.compare(password, user.get("password"));
+      // if (!passwordMatch) {
+      //   return res.status(401).send("Password Does not match");
+      // }
+      return bcrypt
+        .compare(password, user.password)
+        .then((result) => {
+          if (result) {
+            const token = jwt.sign({ email }, secretkey, {
+              expiresIn: "1h",
+            });
+            return res.status(200).send(token);
+          } else {
+            return res.status(401).send("Password Does not match");
+          }
+        })
+        .catch((err) => {
+          console.error(err);
+        });
     })
     .catch((err) => console.error(err));
 };
