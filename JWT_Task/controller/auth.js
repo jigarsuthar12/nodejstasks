@@ -57,10 +57,6 @@ exports.postLogin = (req, res, next) => {
       if (!user) {
         return res.status(401).send("User does not exist");
       }
-      // const passwordMatch = bcrypt.compare(password, user.get("password"));
-      // if (!passwordMatch) {
-      //   return res.status(401).send("Password Does not match");
-      // }
       return bcrypt
         .compare(password, user.password)
         .then((result) => {
