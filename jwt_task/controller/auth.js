@@ -4,7 +4,6 @@ const bcrypt = require("bcrypt");
 const User = require("../models/user");
 const jwt = require("jsonwebtoken");
 const transporter = require("../helper/transporter");
-const secretkey = "jigar";
 
 exports.getLogin = (req, res, next) => {
   res.render("auth/login", {
@@ -61,7 +60,7 @@ exports.postLogin = (req, res, next) => {
         .compare(password, user.password)
         .then((result) => {
           if (result) {
-            const token = jwt.sign({ email }, secretkey, {
+            const token = jwt.sign({ email }, process.env.SECRET_KEY, {
               expiresIn: "1h",
             });
             return res.status(200).send(token);
@@ -92,7 +91,7 @@ exports.postReset = (req, res, next) => {
       if (!user) {
         return res.status(401).send("Could not find user!!");
       }
-      token = jwt.sign({ email, userId }, secretkey, {
+      token = jwt.sign({ email, userId }, process.env.SECRET_KEY, {
         expiresIn: "1h",
       });
 
@@ -101,7 +100,7 @@ exports.postReset = (req, res, next) => {
     .then((result) => {
       res.redirect("/");
       transporter.sendMail({
-        from: '"shop@node-complete.com" <jigar@gmail.com>',
+        from: "shop@node-complete.com <jigar@gmail.com>",
         to: req.body.email,
         subject: "Password reset",
         text: "Password Reset",
@@ -115,7 +114,7 @@ exports.postReset = (req, res, next) => {
 
 exports.getNewPassword = (req, res, next) => {
   const { token } = req.params;
-  res.render(`auth/newPassword`, {
+  res.render("auth/newPassword", {
     path: "/newPassword",
     pageTitle: "Reset Password",
     token: token,
@@ -126,7 +125,7 @@ exports.postNewPassword = (req, res, next) => {
   const { password } = req.body;
   const { token } = req.params;
 
-  const decoded = jwt.verify(token, secretkey);
+  const decoded = jwt.verify(token, process.env.SECRET_KEY);
   if (decoded) {
     console.log("user is verified");
     let resetUser;

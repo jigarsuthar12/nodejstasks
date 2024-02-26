@@ -18,7 +18,7 @@ mongoose
   .connect(process.env.MONGODB_URI)
   .then((result) => {
     app.listen(5000, () => {
-      console.log(`good to go with express.js`);
+      console.log("good to go with express.js");
     });
   })
   .catch((err) => console.error(err));
