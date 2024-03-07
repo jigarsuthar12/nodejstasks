@@ -15,8 +15,8 @@ const Recipe = sequelize.define(
       type: DataTypes.ENUM("own", "forked"),
       allowNull: false,
     },
-    forked_recipe: {
-      type: DataTypes.JSON,
+    forked_id: {
+      type: DataTypes.INTEGER,
       allowNull: true,
     },
   },
