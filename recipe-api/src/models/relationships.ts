@@ -1,3 +1,4 @@
+import Ingredient from "./ingredient.model";
 import Recipe from "./recipe.model";
 import Roll from "./roll.model";
 import User from "./user.model";
@@ -9,5 +10,8 @@ export class Relationships {
 
     User.hasMany(Recipe);
     Recipe.belongsTo(User);
+
+    Recipe.hasMany(Ingredient, { onDelete: "cascade" });
+    Ingredient.belongsTo(Recipe);
   }
 }

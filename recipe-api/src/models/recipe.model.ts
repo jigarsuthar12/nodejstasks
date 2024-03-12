@@ -15,9 +15,21 @@ const Recipe = sequelize.define(
       type: DataTypes.ENUM("own", "forked"),
       allowNull: false,
     },
+    tag: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
     forked_id: {
       type: DataTypes.INTEGER,
       allowNull: true,
+    },
+    deleted_flag: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
+    hide_flag: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
     },
   },
   { timestamps: true },
