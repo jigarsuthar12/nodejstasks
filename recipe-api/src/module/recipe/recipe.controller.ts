@@ -12,7 +12,7 @@ export class RecipeController {
     }
     try {
       if (user.RollId === 1) {
-        const recipes = await Recipe.findAll({ where: { deleted_flag: 0, hide_flag: 0 } });
+        const recipes = await Recipe.findAll();
         return res.status(200).json({ message: "Get all recipes", recipes: recipes });
       }
       const recipes = await Recipe.findAll({ where: { UserId: userid, hide_flag: 0, deleted_flag: 0 } });
@@ -67,14 +67,24 @@ export class RecipeController {
     const updated_name = req.body.name;
     const updated_ingredient = req.body.ingredient;
     const updated_type = req.body.type;
-
+    const recipe = (await Recipe.findOne({ where: { id: recipeId } })) as any;
+    const oldIngredientIds = recipe.ingredient || [];
     try {
       if (updated_type === "forked") {
-        const recipe = (await Recipe.findOne({ where: { id: recipeId } })) as any;
+        for (const ingredient of updated_ingredient) {
+          const found_ingredient = (await Ingredient.findOne({ where: { name: ingredient.name } })) as any;
+          if (found_ingredient) {
+            oldIngredientIds.push(found_ingredient.id);
+          } else {
+            const newIngredient = (await Ingredient.create({ name: ingredient.name, quntity: ingredient.quantity, unit: ingredient.unit, RecipeId: recipeId })) as any;
+
+            oldIngredientIds.push(newIngredient.id);
+          }
+        }
 
         const updated_recipe = await Recipe.create({
           name: updated_name || recipe.name,
-          ingredient: updated_ingredient || recipe.ingredient,
+          ingredient: oldIngredientIds || recipe.ingredient,
           type: updated_type,
           forked_id: recipe.id,
           restore_flag: recipe.restore_flag,
@@ -85,10 +95,28 @@ export class RecipeController {
 
         return res.status(200).json({ message: "Forked recipe is added!", updatedRecipe: updated_recipe });
       } else {
+        for (const ingredient of updated_ingredient) {
+          const found_ingredient = (await Ingredient.findOne({ where: { name: ingredient.name } })) as any;
+          if (found_ingredient) {
+            const updated_ingredient = Ingredient.update(
+              {
+                name: ingredient.name || found_ingredient.name,
+                quantity: ingredient.quantity || found_ingredient.quantity,
+                unit: ingredient.unit || found_ingredient.unit,
+              },
+              { where: { id: found_ingredient.id } },
+            ) as any;
+            oldIngredientIds.push(updated_ingredient.id);
+          } else {
+            const newIngredient = (await Ingredient.create({ name: ingredient.name, quntity: ingredient.quantity, unit: ingredient.unit, RecipeId: recipeId })) as any;
+
+            oldIngredientIds.push(newIngredient.id);
+          }
+        }
         const updatedRecipe = await Recipe.update(
           {
             name: updated_name,
-            ingredient: updated_ingredient,
+            ingredient: oldIngredientIds,
           },
           {
             where: {
