@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from "express";
+import { Op } from "sequelize";
 import Ingredient from "../../models/ingredient.model";
 import Recipe from "../../models/recipe.model";
 import User from "../../models/user.model";
@@ -147,6 +148,13 @@ export class RecipeController {
     }
     try {
       const deleteRecipe = await Recipe.update({ deleted_flag: 1 }, { where: { id: recipeId, UserId: user.id } });
+      await Recipe.destroy({
+        where: {
+          createdAt: {
+            [Op.lte]: new Date((new Date() as any) - 30 * 24 * 60 * 60 * 1000),
+          },
+        },
+      });
       return res.status(200).json({ message: "recipe is deleted!" });
     } catch (err) {
       return res.status(404).json({ error: "Can not delete any data", err: err });
@@ -161,13 +169,20 @@ export class RecipeController {
       return res.status(404).json({ message: "User can not have access by admin" });
     }
     try {
+      await Recipe.destroy({
+        where: {
+          createdAt: {
+            [Op.lte]: new Date((new Date() as any) - 30 * 24 * 60 * 60 * 1000),
+          },
+        },
+      });
       const updated_recipe = await Recipe.update(
-        { deleted_recipe: 0 },
+        { deleted_flag: 0 },
         {
           where: {
             id: recipeId,
             UserId: id,
-            deleted_recipe: 1,
+            deleted_flag: 1,
           },
         },
       );

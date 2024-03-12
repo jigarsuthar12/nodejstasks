@@ -8,5 +8,5 @@ router.get("/", Middleware.auth, recipeController.getRecipes);
 router.post("/", Middleware.auth, recipeController.createRecipe);
 router.patch("/:recipeId", Middleware.auth, recipeController.updateRecipe);
 router.delete("/:recipeId", Middleware.auth, recipeController.deleteRecipe);
-router.patch("/:recipeId",Middleware.auth,recipeController.restoreRecipe);
+router.patch("/restore/:recipeId", Middleware.auth, recipeController.restoreRecipe);
 export const recipeRoutes: Router = router;
