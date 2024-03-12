@@ -43,7 +43,7 @@ export class RecipeController {
       })) as any;
       const ingredientIds = [];
       for (const ingredient of ingredientbody) {
-        const added_ingredient = (await Ingredient.create({ name: ingredient.name, quntity: ingredient.quantity, unit: ingredient.unit, RecipeId: recipe.id })) as any;
+        const added_ingredient = (await Ingredient.create({ name: ingredient.name, quantity: ingredient.quantity, unit: ingredient.unit, RecipeId: recipe.id })) as any;
         ingredientIds.push(added_ingredient.id);
       }
       const updated_recipe = await Recipe.update(
@@ -64,10 +64,10 @@ export class RecipeController {
       return res.status(404).json({ message: "User can not have access by admin" });
     }
     const recipeId = req.params.recipeId;
-    const updated_name = req.body.name;
-    const updated_ingredient = req.body.ingredient;
-    const updated_type = req.body.type;
     const recipe = (await Recipe.findOne({ where: { id: recipeId } })) as any;
+    const updated_name = req.body.name || recipe.name;
+    const updated_ingredient = req.body.ingredient;
+    const updated_type = req.body.type || recipe.type;
     const oldIngredientIds = recipe.ingredient || [];
     try {
       if (updated_type === "forked") {
@@ -76,7 +76,7 @@ export class RecipeController {
           if (found_ingredient) {
             oldIngredientIds.push(found_ingredient.id);
           } else {
-            const newIngredient = (await Ingredient.create({ name: ingredient.name, quntity: ingredient.quantity, unit: ingredient.unit, RecipeId: recipeId })) as any;
+            const newIngredient = (await Ingredient.create({ name: ingredient.name, quantity: ingredient.quantity, unit: ingredient.unit, RecipeId: recipeId })) as any;
 
             oldIngredientIds.push(newIngredient.id);
           }
@@ -98,24 +98,29 @@ export class RecipeController {
         for (const ingredient of updated_ingredient) {
           const found_ingredient = (await Ingredient.findOne({ where: { name: ingredient.name } })) as any;
           if (found_ingredient) {
-            const updated_ingredient = Ingredient.update(
+            const updated_ingredient = (await Ingredient.update(
               {
                 name: ingredient.name || found_ingredient.name,
                 quantity: ingredient.quantity || found_ingredient.quantity,
                 unit: ingredient.unit || found_ingredient.unit,
               },
-              { where: { id: found_ingredient.id } },
-            ) as any;
-            oldIngredientIds.push(updated_ingredient.id);
+              { where: { id: found_ingredient.id }, returning: true },
+            )) as any;
+            oldIngredientIds.push(found_ingredient.id);
           } else {
-            const newIngredient = (await Ingredient.create({ name: ingredient.name, quntity: ingredient.quantity, unit: ingredient.unit, RecipeId: recipeId })) as any;
+            const newIngredient = (await Ingredient.create({
+              name: ingredient.name,
+              quantity: ingredient.quantity,
+              unit: ingredient.unit || "gm",
+              RecipeId: recipeId,
+            })) as any;
 
             oldIngredientIds.push(newIngredient.id);
           }
         }
         const updatedRecipe = await Recipe.update(
           {
-            name: updated_name,
+            name: updated_name || recipe.name,
             ingredient: oldIngredientIds,
           },
           {
@@ -123,13 +128,14 @@ export class RecipeController {
               UserId: id,
               id: recipeId,
               hide_flag: 0,
+              deleted_flag: 0,
             },
           },
         );
         return res.status(200).json({ message: "Recipe is updated!!", updatedRecipe: updatedRecipe });
       }
     } catch (err) {
-      return res.status(404).json({ error: "can not update any user!", err: err });
+      return res.status(404).json({ error: "can not update any recipe!", err: err });
     }
   }
   public async deleteRecipe(req: Request, res: Response, next: NextFunction) {
@@ -144,6 +150,30 @@ export class RecipeController {
       return res.status(200).json({ message: "recipe is deleted!" });
     } catch (err) {
       return res.status(404).json({ error: "Can not delete any data", err: err });
+    }
+  }
+
+  public async restoreRecipe(req: Request, res: Response, next: NextFunction) {
+    const recipeId = req.params.recipeId;
+    const id = req.body.decoded.id;
+    const user = (await User.findOne({ where: { id: id } })) as any;
+    if (user.block_flag === 1) {
+      return res.status(404).json({ message: "User can not have access by admin" });
+    }
+    try {
+      const updated_recipe = await Recipe.update(
+        { deleted_recipe: 0 },
+        {
+          where: {
+            id: recipeId,
+            UserId: id,
+            deleted_recipe: 1,
+          },
+        },
+      );
+      return res.status(200).json({ message: "recipe is restored!!" });
+    } catch (err) {
+      return res.status(404).json({ error: "can not restore recipe!!" });
     }
   }
 }
