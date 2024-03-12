@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { Jwt } from "./helper/jwt.helper";
+import User from "./models/user.model";
 export class Middleware {
   public static async auth(req: Request, res: Response, next: NextFunction) {
     res.set("Content-Type", "application/json");
@@ -14,6 +15,17 @@ export class Middleware {
         res.status(401).json({ error: "Unauthorized", code: 401 });
         return;
       }
+    }
+  }
+  public static async isAdmin(req: Request, res: Response, next: NextFunction) {
+    const id = req.body.decoded.id;
+    const user = User.findOne({ where: { id: id } }) as any;
+    if (user.id !== 1) {
+      return res.status(404).json({ message: "you are not authorized!!" });
+    } else {
+      console.log("admin authorized!!");
+
+      next();
     }
   }
 }

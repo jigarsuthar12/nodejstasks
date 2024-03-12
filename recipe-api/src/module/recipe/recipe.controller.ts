@@ -44,7 +44,13 @@ export class RecipeController {
       })) as any;
       const ingredientIds = [];
       for (const ingredient of ingredientbody) {
-        const added_ingredient = (await Ingredient.create({ name: ingredient.name, quantity: ingredient.quantity, unit: ingredient.unit, RecipeId: recipe.id })) as any;
+        const added_ingredient = (await Ingredient.create({
+          name: ingredient.name,
+          quantity: ingredient.quantity,
+          unit: ingredient.unit,
+          RecipeId: recipe.id,
+          UserId: userid,
+        })) as any;
         ingredientIds.push(added_ingredient.id);
       }
       const updated_recipe = await Recipe.update(
@@ -69,18 +75,19 @@ export class RecipeController {
     const updated_name = req.body.name || recipe.name;
     const updated_ingredient = req.body.ingredient;
     const updated_type = req.body.type || recipe.type;
-    const oldIngredientIds = recipe.ingredient || [];
+    const oldIngredientIds = [];
     try {
       if (updated_type === "forked") {
         for (const ingredient of updated_ingredient) {
-          const found_ingredient = (await Ingredient.findOne({ where: { name: ingredient.name } })) as any;
-          if (found_ingredient) {
-            oldIngredientIds.push(found_ingredient.id);
-          } else {
-            const newIngredient = (await Ingredient.create({ name: ingredient.name, quantity: ingredient.quantity, unit: ingredient.unit, RecipeId: recipeId })) as any;
+          const newIngredient = (await Ingredient.create({
+            name: ingredient.name,
+            quantity: ingredient.quantity,
+            unit: ingredient.unit,
+            RecipeId: recipeId,
+            UserId: id,
+          })) as any;
 
-            oldIngredientIds.push(newIngredient.id);
-          }
+          oldIngredientIds.push(newIngredient.id);
         }
 
         const updated_recipe = await Recipe.create({
@@ -112,8 +119,9 @@ export class RecipeController {
             const newIngredient = (await Ingredient.create({
               name: ingredient.name,
               quantity: ingredient.quantity,
-              unit: ingredient.unit || "gm",
+              unit: ingredient.unit,
               RecipeId: recipeId,
+              UserId: id,
             })) as any;
 
             oldIngredientIds.push(newIngredient.id);

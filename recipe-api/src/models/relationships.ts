@@ -13,5 +13,16 @@ export class Relationships {
 
     Recipe.hasMany(Ingredient, { onDelete: "cascade" });
     Ingredient.belongsTo(Recipe);
+    Ingredient.belongsTo(User);
+
+    // Follower.belongsTo(User);
+    // Follower.belongsTo(User, { foreignKey: "FollowedId" });
+
+    // Follower.hasMany(Recipe, { foreignKey: "RecipeId" });
+
+    // Recipe.hasMany(Comment);
+    // Comment.belongsTo(Recipe);
+    // Comment.belongsTo(User, { foreignKey: "commentatorId" });
+    // Comment.belongsTo(User, { foreignKey: "commentId" });
   }
 }
