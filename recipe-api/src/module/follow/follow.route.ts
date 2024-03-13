@@ -8,5 +8,6 @@ const followController = new FollowController();
 router.get("/", Middleware.auth, followController.getFollowers);
 
 router.post("/:recipeId", Middleware.auth, followController.addFollower);
+router.post("/:recipeId", Middleware.auth, followController.deleteFollower);
 
 export const followerRoutes: Router = router;

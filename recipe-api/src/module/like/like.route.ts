@@ -6,5 +6,7 @@ const router = Router();
 const followController = new LikeController();
 
 router.get("/", Middleware.auth, followController.getLikes);
+router.post("/:likeId", Middleware.auth, followController.getLikes);
+router.delete("/:likeId", Middleware.auth, followController.getLikes);
 
 export const followerRoutes: Router = router;

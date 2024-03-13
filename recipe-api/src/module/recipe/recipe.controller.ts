@@ -8,9 +8,6 @@ export class RecipeController {
   public async getRecipes(req: Request, res: Response, next: NextFunction) {
     const userid = req.body.decoded.id;
     const user = (await User.findOne({ where: { id: userid } })) as any;
-    if (user.block_flag === 1) {
-      return res.status(404).json({ message: "User can not have access by admin" });
-    }
     try {
       if (user.RollId === 1) {
         const recipes = await Recipe.findAll();
@@ -24,10 +21,6 @@ export class RecipeController {
   }
   public async createRecipe(req: Request, res: Response, next: NextFunction) {
     const userid = req.body.decoded.id;
-    const user = (await User.findOne({ where: { id: userid } })) as any;
-    if (user.block_flag === 1) {
-      return res.status(404).json({ message: "User can not have access by admin" });
-    }
     const name = req.body.recipename;
     const type = req.body.type;
 
@@ -66,10 +59,7 @@ export class RecipeController {
   }
   public async updateRecipe(req: Request, res: Response, next: NextFunction) {
     const id = req.body.decoded.id;
-    const user = (await User.findOne({ where: { id: id } })) as any;
-    if (user.block_flag === 1) {
-      return res.status(404).json({ message: "User can not have access by admin" });
-    }
+
     const recipeId = req.params.recipeId;
     const recipe = (await Recipe.findOne({ where: { id: recipeId } })) as any;
     const updated_name = req.body.name || recipe.name;
@@ -149,13 +139,9 @@ export class RecipeController {
   }
   public async deleteRecipe(req: Request, res: Response, next: NextFunction) {
     const id = req.body.decoded.id;
-    const user = (await User.findOne({ where: { id: id } })) as any;
     const recipeId = req.params.recipeId;
-    if (user.block_flag === 1) {
-      return res.status(404).json({ message: "User can not have access by admin" });
-    }
     try {
-      const deleteRecipe = await Recipe.update({ deleted_flag: 1 }, { where: { id: recipeId, UserId: user.id } });
+      const deleteRecipe = await Recipe.update({ deleted_flag: 1 }, { where: { id: recipeId, UserId: id } });
       await Recipe.destroy({
         where: {
           createdAt: {
@@ -172,10 +158,6 @@ export class RecipeController {
   public async restoreRecipe(req: Request, res: Response, next: NextFunction) {
     const recipeId = req.params.recipeId;
     const id = req.body.decoded.id;
-    const user = (await User.findOne({ where: { id: id } })) as any;
-    if (user.block_flag === 1) {
-      return res.status(404).json({ message: "User can not have access by admin" });
-    }
     try {
       await Recipe.destroy({
         where: {

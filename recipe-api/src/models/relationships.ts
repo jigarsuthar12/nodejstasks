@@ -1,4 +1,7 @@
+import Comment from "./comment.model";
+import Follower from "./follower.model";
 import Ingredient from "./ingredient.model";
+import Like from "./like.model";
 import Recipe from "./recipe.model";
 import Roll from "./roll.model";
 import User from "./user.model";
@@ -15,14 +18,17 @@ export class Relationships {
     Ingredient.belongsTo(Recipe);
     Ingredient.belongsTo(User);
 
-    // Follower.belongsTo(User);
-    // Follower.belongsTo(User, { foreignKey: "FollowedId" });
+    Follower.belongsTo(User);
+    Follower.belongsTo(User, { foreignKey: "FollowedId" });
 
-    // Follower.hasMany(Recipe, { foreignKey: "RecipeId" });
+    Follower.hasMany(Recipe, { foreignKey: "RecipeId" });
 
-    // Recipe.hasMany(Comment);
-    // Comment.belongsTo(Recipe);
-    // Comment.belongsTo(User, { foreignKey: "commentatorId" });
-    // Comment.belongsTo(User, { foreignKey: "commentId" });
+    Recipe.hasMany(Comment);
+    Comment.belongsTo(Recipe);
+    Comment.belongsTo(User, { foreignKey: "commentatorId" });
+    Comment.belongsTo(User, { foreignKey: "commentId" });
+
+    Like.belongsTo(User);
+    Like.belongsTo(Recipe);
   }
 }
