@@ -5,8 +5,8 @@ import { LikeController } from "./like.controller";
 const router = Router();
 const followController = new LikeController();
 
-router.get("/", Middleware.auth, followController.getLikes);
-router.post("/:likeId", Middleware.auth, followController.getLikes);
-router.delete("/:likeId", Middleware.auth, followController.getLikes);
+router.get("/:recipeId", Middleware.auth, followController.getLikes);
+router.post("/:likeId", Middleware.auth, followController.addLikes);
+router.delete("/:recipeId", Middleware.auth, followController.removeLikes);
 
-export const followerRoutes: Router = router;
+export const likeRoutes: Router = router;

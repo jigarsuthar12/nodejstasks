@@ -76,7 +76,7 @@ export class TaskController {
         return res.status(200).json({ message: "Task is deleted!!", deletedTask: data });
       }
     } catch (err) {
-      return res.status(401).json({ message: "Task is not deleted something went wrong!!", deletedTask: err });
+      return res.status(404).json({ message: "Task is not deleted something went wrong!!", deletedTask: err });
     }
   }
 }

@@ -21,8 +21,6 @@ export class Relationships {
     Follower.belongsTo(User);
     Follower.belongsTo(User, { foreignKey: "FollowedId" });
 
-    Follower.hasMany(Recipe, { foreignKey: "RecipeId" });
-
     Recipe.hasMany(Comment);
     Comment.belongsTo(Recipe);
     Comment.belongsTo(User, { foreignKey: "commentatorId" });

@@ -5,9 +5,9 @@ import { CommentController } from "./comment.controller";
 const router = Router();
 const followController = new CommentController();
 
-router.get("/", Middleware.auth, Middleware.isBlocked, followController.getComments);
+router.get("/:recipeId", Middleware.auth, Middleware.isBlocked, followController.getComments);
 router.post("/:recipeId", Middleware.auth, Middleware.isBlocked, followController.addComments);
-router.patch("/:recipeId", Middleware.auth, Middleware.isBlocked, followController.updateComments);
-router.delete("/:recipeId", Middleware.auth, Middleware.isBlocked, followController.deleteComments);
+router.patch("/:recipeId/:commentId", Middleware.auth, Middleware.isBlocked, followController.updateComments);
+router.delete("/:recipeId/:commentId", Middleware.auth, Middleware.isBlocked, followController.deleteComment);
 
-export const followerRoutes: Router = router;
+export const commentRoutes: Router = router;

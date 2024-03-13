@@ -6,8 +6,7 @@ const router = Router();
 const followController = new FollowController();
 
 router.get("/", Middleware.auth, followController.getFollowers);
-
-router.post("/:recipeId", Middleware.auth, followController.addFollower);
-router.post("/:recipeId", Middleware.auth, followController.deleteFollower);
+router.post("/:userId", Middleware.auth, followController.addFollower);
+router.delete("/:userId", Middleware.auth, followController.deleteFollower);
 
 export const followerRoutes: Router = router;
