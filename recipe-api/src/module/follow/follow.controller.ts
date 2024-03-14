@@ -1,13 +1,23 @@
 import { NextFunction, Request, Response } from "express";
 import Follower from "../../models/follower.model";
+import User from "../../models/user.model";
 
 export class FollowController {
   public async getFollowers(req: Request, res: Response, next: NextFunction) {
     const id = req.body.decoded.id;
     try {
-      const allFollowers = await Follower.findAll({ where: { FollowedId: id } });
-      if (allFollowers) {
-        return res.status(200).json({ message: "all followers are", allFollowers });
+      const allFollowers = (await Follower.findAll({ where: { FollowedId: id } })) as any;
+      const usernames = [];
+      const allFollowersName = await Promise.all(
+        allFollowers.map(async follower => {
+          const userId = follower.UserId;
+          const user = (await User.findOne({ where: { id: userId } })) as any;
+          usernames.push(user.name);
+          return { ...follower.toJSON(), UserId: usernames };
+        }),
+      );
+      if (allFollowersName) {
+        return res.status(200).json({ message: "all followers are", allFollowersName });
       } else {
         return res.status(404).json({ message: "can not have any follower!!" });
       }
