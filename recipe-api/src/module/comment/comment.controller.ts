@@ -19,6 +19,17 @@ export class CommentController {
     const id = req.body.decoded.id;
     const recipeId = req.params.recipeId;
     const description = req.body.description;
+    const flag = req.query.flag as any;
+
+    if (flag === true) {
+      const comment = (await Comment.create({
+        description: description,
+        RecipeId: recipeId,
+        commentatorId: id,
+        flag: flag,
+      })) as any;
+      return res.status(201).json({ message: "replied comment is added", comment });
+    }
     const comment = (await Comment.create({
       description: description,
       RecipeId: recipeId,

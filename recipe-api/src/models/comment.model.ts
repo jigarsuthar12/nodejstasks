@@ -13,6 +13,10 @@ const Comment = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    flag: {
+      type: DataTypes.STRING,
+      defaultValue: false,
+    },
   },
   { timestamps: true },
 );
