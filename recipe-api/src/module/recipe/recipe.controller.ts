@@ -11,11 +11,35 @@ export class RecipeController {
     const user = (await User.findOne({ where: { id: userid } })) as any;
     try {
       if (user.RollId === 1) {
-        const recipes = await Recipe.findAll();
-        return res.status(200).json({ message: "Get all recipes", recipes: recipes });
+        const recipes = (await Recipe.findAll()) as any;
+        const updatedRecipes = await Promise.all(
+          recipes.map(async item => {
+            const fullIngredients = [];
+            await Promise.all(
+              item.ingredient.map(async ingredientId => {
+                const ingredientDatabase = await Ingredient.findOne({ where: { id: ingredientId } });
+                fullIngredients.push(ingredientDatabase);
+              }),
+            );
+            return { ...item.toJSON(), ingredient: fullIngredients };
+          }),
+        );
+        return res.status(200).json({ message: "Get all recipes", recipes: updatedRecipes });
       }
-      const recipes = await Recipe.findAll({ where: { UserId: userid, hide_flag: 0, deleted_flag: 0 } });
-      return res.status(200).json({ message: "got all your recipes", recipes: recipes });
+      const recipes = (await Recipe.findAll({ where: { UserId: userid, hide_flag: 0, deleted_flag: 0 } })) as any;
+      const updatedRecipes = await Promise.all(
+        recipes.map(async item => {
+          const fullIngredients = [];
+          await Promise.all(
+            item.ingredient.map(async ingredientId => {
+              const ingredientDatabase = await Ingredient.findOne({ where: { id: ingredientId } });
+              fullIngredients.push(ingredientDatabase);
+            }),
+          );
+          return { ...item.toJSON(), ingredient: fullIngredients };
+        }),
+      );
+      return res.status(200).json({ message: "got all your recipes", recipes: updatedRecipes });
     } catch (err) {
       return res.status(404).json({ message: "recipes not found" });
     }
@@ -26,8 +50,21 @@ export class RecipeController {
     const recipes = [];
     for (const userwhomfollow of userwhomifollowids) {
       const id = userwhomfollow.FollowedId;
-      const recipe = await Recipe.findOne({ where: { UserId: id } });
-      recipes.push(recipe);
+      const recipe = [(await Recipe.findOne({ where: { UserId: id } })) as any];
+
+      const updatedRecipes = await Promise.all(
+        recipe.map(async item => {
+          const fullIngredients = [];
+          await Promise.all(
+            item.ingredient.map(async ingredientId => {
+              const ingredientDatabase = await Ingredient.findOne({ where: { id: ingredientId } });
+              fullIngredients.push(ingredientDatabase);
+            }),
+          );
+          return { ...item.toJSON(), ingredient: fullIngredients };
+        }),
+      );
+      recipes.push(updatedRecipes);
     }
     return res.status(200).json({ message: "got all recipes that whom you follow", recipes });
   }
@@ -37,13 +74,8 @@ export class RecipeController {
     const type = req.body.type;
     const recipeId = req.query.recipeId;
     const tag = req.body.tag;
-    const recipe = (await Recipe.findOne({ where: { id: recipeId } })) as any;
-    const ingredient = [];
-    for (const recipeIngredient of recipe.ingredient) {
-      const allingredient = await Ingredient.findOne({ where: { id: recipeIngredient } });
-      ingredient.push({ allingredient });
-    }
-    const ingredientbody = req.body.ingredient || ingredient;
+
+    const ingredientbody = req.body.ingredient;
     const ingredientIds = [];
     try {
       if (type === "own") {
@@ -70,6 +102,13 @@ export class RecipeController {
           { where: { id: recipe.id } },
         );
       } else {
+        const recipe = (await Recipe.findOne({ where: { id: recipeId } })) as any;
+        const ingredient = [];
+        for (const recipeIngredient of recipe.ingredient) {
+          const allingredient = await Ingredient.findOne({ where: { id: recipeIngredient } });
+          ingredient.push({ allingredient });
+        }
+
         for (const ingredient of ingredientbody) {
           const newIngredient = (await Ingredient.create({
             name: ingredient.name,

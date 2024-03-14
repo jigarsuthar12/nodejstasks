@@ -11,6 +11,6 @@ router.delete("/:recipeId", Middleware.auth, Middleware.isBlocked, recipeControl
 router.patch("/restore/:recipeId", Middleware.auth, Middleware.isBlocked, recipeController.restoreRecipe);
 router.get("/:userId", Middleware.auth, recipeController.getRecipesWhomIFollow);
 
-router.patch("/:recipeId", Middleware.auth, Middleware.isAdmin, recipeController.recipeHide);
-router.patch("/:recipeId", Middleware.auth, Middleware.isAdmin, recipeController.recipeShow);
+router.patch("recipeHide/:recipeId", Middleware.auth, Middleware.isAdmin, recipeController.recipeHide);
+router.patch("recipeShow/:recipeId", Middleware.auth, Middleware.isAdmin, recipeController.recipeShow);
 export const recipeRoutes: Router = router;

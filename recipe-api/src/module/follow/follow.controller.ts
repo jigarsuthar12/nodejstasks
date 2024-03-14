@@ -5,7 +5,7 @@ export class FollowController {
   public async getFollowers(req: Request, res: Response, next: NextFunction) {
     const id = req.body.decoded.id;
     try {
-      const allFollowers = await Follower.findAll({ where: { UserId: id } });
+      const allFollowers = await Follower.findAll({ where: { FollowedId: id } });
       if (allFollowers) {
         return res.status(200).json({ message: "all followers are", allFollowers });
       } else {

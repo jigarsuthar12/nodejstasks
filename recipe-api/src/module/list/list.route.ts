@@ -4,7 +4,7 @@ import { ListController } from "./list.controller";
 
 const router = Router();
 const listController = new ListController();
-router.get("/", Middleware.auth, Middleware.isBlocked, listController.getOwnList);
-router.get("/", Middleware.auth, Middleware.isBlocked, listController.getRecipeByTagOrName);
+router.get("/filter", Middleware.auth, Middleware.isBlocked, listController.getRecipeByTagOrName);
+router.get("/getOwnlist", Middleware.auth, Middleware.isBlocked, listController.getOwnList);
 
 export const listRoutes: Router = router;
