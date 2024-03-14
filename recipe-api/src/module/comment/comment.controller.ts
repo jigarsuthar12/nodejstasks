@@ -15,7 +15,7 @@ export class CommentController {
       return res.status(404).json({ error: "can not get any comments!", err: err });
     }
   }
-  public async addComments(req: Request, res: Response, next: NextFunction) {
+  public async addComment(req: Request, res: Response, next: NextFunction) {
     const id = req.body.decoded.id;
     const recipeId = req.params.recipeId;
     const description = req.body.description;
@@ -51,7 +51,7 @@ export class CommentController {
       return res.status(404).json({ error: "can not destroy any" });
     }
   }
-  public async updateComments(req: Request, res: Response, next: NextFunction) {
+  public async updateComment(req: Request, res: Response, next: NextFunction) {
     const id = req.body.decoded.id;
     const commentId = req.params.commentId;
     const description = req.body.description;
