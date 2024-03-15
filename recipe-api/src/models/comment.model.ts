@@ -9,13 +9,9 @@ const Comment = sequelize.define(
       autoIncrement: true,
       primaryKey: true,
     },
-    description: {
+    comment: {
       type: DataTypes.STRING,
       allowNull: false,
-    },
-    flag: {
-      type: DataTypes.STRING,
-      defaultValue: false,
     },
   },
   { timestamps: true },

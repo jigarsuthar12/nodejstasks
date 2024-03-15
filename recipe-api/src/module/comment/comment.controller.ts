@@ -5,7 +5,7 @@ export class CommentController {
   public async getComments(req: Request, res: Response, next: NextFunction) {
     const recipeId = req.params.recipeId;
     try {
-      const comments = await Comment.findAll({ where: { RecipeId: recipeId } });
+      const comments = (await Comment.findAll({ where: { RecipeId: recipeId } })) as any;
       if (comments) {
         return res.status(200).json({ message: "got all recipes comments", comments: comments });
       } else {
@@ -18,25 +18,25 @@ export class CommentController {
   public async addComment(req: Request, res: Response, next: NextFunction) {
     const id = req.body.decoded.id;
     const recipeId = req.params.recipeId;
-    const description = req.body.description;
-    const flag = req.query.flag as any;
+    const comment = req.body.comment;
+    const userId = req.query.userId;
 
-    if (flag === true) {
-      const comment = (await Comment.create({
-        description: description,
+    if (userId) {
+      const addedcomment = (await Comment.create({
+        comment: comment,
         RecipeId: recipeId,
         commentatorId: id,
-        flag: flag,
+        commentId: userId,
       })) as any;
-      return res.status(201).json({ message: "replied comment is added", comment });
+      return res.status(201).json({ message: "replied comment is added", addedcomment });
     }
-    const comment = (await Comment.create({
-      description: description,
+    const addedcomment = (await Comment.create({
+      comment: comment,
       RecipeId: recipeId,
       commentatorId: id,
     })) as any;
 
-    return res.status(201).json({ message: "Comment is created!!", comment });
+    return res.status(201).json({ message: "Comment is created!!", addedcomment });
   }
   public async deleteComment(req: Request, res: Response, next: NextFunction) {
     const id = req.body.decoded.id;
@@ -54,12 +54,12 @@ export class CommentController {
   public async updateComment(req: Request, res: Response, next: NextFunction) {
     const id = req.body.decoded.id;
     const commentId = req.params.commentId;
-    const description = req.body.description;
+    const comment = req.body.commnet;
     const recipeId = req.params.recipeId;
 
     const updated_comment = await Comment.update(
       {
-        description: description,
+        commnet: comment,
       },
       { where: { commentatorId: id, id: commentId, recipeId: recipeId } },
     );

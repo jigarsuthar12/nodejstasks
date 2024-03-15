@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { Op } from "sequelize";
+import Comment from "../../models/comment.model";
 import Follower from "../../models/follower.model";
 import Ingredient from "../../models/ingredient.model";
 import Recipe from "../../models/recipe.model";
@@ -12,7 +13,7 @@ export class RecipeController {
     try {
       if (user.RollId === 1) {
         const recipes = (await Recipe.findAll()) as any;
-        const updatedRecipes = await Promise.all(
+        const updatedRecipes = (await Promise.all(
           recipes.map(async item => {
             const fullIngredients = [];
             await Promise.all(
@@ -23,11 +24,22 @@ export class RecipeController {
             );
             return { ...item.toJSON(), ingredient: fullIngredients };
           }),
-        );
-        return res.status(200).json({ message: "Get all recipes", recipes: updatedRecipes });
+        )) as any;
+        const comments = (await Comment.findAll({ where: { recipeId: updatedRecipes.id } })) as any;
+        const updated_comment = comments.map(async comment => {
+          const commentatorId = comment.commentatorId;
+          const commentId = comment.commentId;
+
+          const commentator = await User.findOne({ where: { id: commentatorId } });
+          const commentUser = await User.findOne({ where: { id: commentId } });
+
+          return { ...comment.toJSON(), commentId: commentUser, commentatorId: commentator };
+        });
+
+        return res.status(200).json({ message: "Get all recipes", recipes: { ...updatedRecipes, comments: updated_comment } });
       }
       const recipes = (await Recipe.findAll({ where: { UserId: userid, hide_flag: 0, deleted_flag: 0 } })) as any;
-      const updatedRecipes = await Promise.all(
+      const updatedRecipes = (await Promise.all(
         recipes.map(async item => {
           const fullIngredients = [];
           await Promise.all(
@@ -36,10 +48,31 @@ export class RecipeController {
               fullIngredients.push(ingredientDatabase);
             }),
           );
-          return { ...item.toJSON(), ingredient: fullIngredients };
+          const comments = (await Comment.findAll({ where: { recipeId: item.id } })) as any;
+          const updated_comment = await Promise.all(
+            comments.map(async comment => {
+              const commentatorId = comment.commentatorId;
+              const commentUserId = comment.commentId;
+              const commentUser = [];
+              if (commentUserId) {
+                const commentUsers = await User.findOne({ where: { id: commentUserId } });
+                const replied_commnet = {
+                  commentUser: commentUsers,
+                  replie: comment.comment,
+                };
+                commentUser.push(replied_commnet);
+              }
+
+              const commentator = await User.findOne({ where: { id: commentatorId } });
+
+              return { ...comment.toJSON(), replied_comments: commentUser, commentatorId: commentator };
+            }),
+          );
+          return { ...item.toJSON(), ingredient: fullIngredients, comment: updated_comment };
         }),
-      );
-      return res.status(200).json({ message: "got all your recipes", recipes: updatedRecipes });
+      )) as any;
+
+      return res.status(200).json({ message: "got all your recipes", recipes: { updatedRecipes } });
     } catch (err) {
       return res.status(404).json({ message: "recipes not found" });
     }
