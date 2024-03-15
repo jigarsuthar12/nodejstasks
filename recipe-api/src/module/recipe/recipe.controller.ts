@@ -94,7 +94,27 @@ export class RecipeController {
               fullIngredients.push(ingredientDatabase);
             }),
           );
-          return { ...item.toJSON(), ingredient: fullIngredients };
+          const comments = (await Comment.findAll({ where: { recipeId: item.id } })) as any;
+          const updated_comment = await Promise.all(
+            comments.map(async comment => {
+              const commentatorId = comment.commentatorId;
+              const commentUserId = comment.commentId;
+              const commentUser = [];
+              if (commentUserId) {
+                const commentUsers = await User.findOne({ where: { id: commentUserId } });
+                const replied_commnet = {
+                  commentUser: commentUsers,
+                  replie: comment.comment,
+                };
+                commentUser.push(replied_commnet);
+              }
+
+              const commentator = await User.findOne({ where: { id: commentatorId } });
+
+              return { ...comment.toJSON(), replied_comments: commentUser, commentatorId: commentator };
+            }),
+          );
+          return { ...item.toJSON(), ingredient: fullIngredients, comments: updated_comment };
         }),
       );
       recipes.push(updatedRecipes);
