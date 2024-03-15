@@ -9,7 +9,7 @@ router.post("/", Middleware.auth, Middleware.isBlocked, recipeController.createR
 router.patch("/:recipeId", Middleware.auth, Middleware.isBlocked, recipeController.updateRecipe);
 router.delete("/:recipeId", Middleware.auth, Middleware.isBlocked, recipeController.deleteRecipe);
 router.patch("/restore/:recipeId", Middleware.auth, Middleware.isBlocked, recipeController.restoreRecipe);
-router.get("/:userId", Middleware.auth, recipeController.getRecipesWhomIFollow);
+router.get("/recipewhomifollow", Middleware.auth, recipeController.getRecipesWhomIFollow);
 
 router.patch("recipeHide/:recipeId", Middleware.auth, Middleware.isAdmin, recipeController.recipeHide);
 router.patch("recipeShow/:recipeId", Middleware.auth, Middleware.isAdmin, recipeController.recipeShow);

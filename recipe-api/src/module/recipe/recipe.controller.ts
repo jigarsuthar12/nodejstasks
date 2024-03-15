@@ -3,6 +3,7 @@ import { Op } from "sequelize";
 import Comment from "../../models/comment.model";
 import Follower from "../../models/follower.model";
 import Ingredient from "../../models/ingredient.model";
+import Like from "../../models/like.model";
 import Recipe from "../../models/recipe.model";
 import User from "../../models/user.model";
 
@@ -68,11 +69,16 @@ export class RecipeController {
               return { ...comment.toJSON(), replied_comments: commentUser, commentatorId: commentator };
             }),
           );
-          return { ...item.toJSON(), ingredient: fullIngredients, comment: updated_comment };
+          const likesCount = await Like.count({
+            where: {
+              RecipeId: item.id,
+            },
+          });
+          return { ...item.toJSON(), ingredient: fullIngredients, comment: updated_comment, likes: likesCount };
         }),
       )) as any;
 
-      return res.status(200).json({ message: "got all your recipes", recipes: { updatedRecipes } });
+      return res.status(200).json({ message: "got all your recipes", recipes: updatedRecipes });
     } catch (err) {
       return res.status(404).json({ message: "recipes not found" });
     }
@@ -114,7 +120,12 @@ export class RecipeController {
               return { ...comment.toJSON(), replied_comments: commentUser, commentatorId: commentator };
             }),
           );
-          return { ...item.toJSON(), ingredient: fullIngredients, comments: updated_comment };
+          const likesCount = await Like.count({
+            where: {
+              RecipeId: item.id,
+            },
+          });
+          return { ...item.toJSON(), ingredient: fullIngredients, comments: updated_comment, likes: likesCount };
         }),
       );
       recipes.push(updatedRecipes);

@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import Comment from "../../models/comment.model";
 import Ingredient from "../../models/ingredient.model";
+import Like from "../../models/like.model";
 import Recipe from "../../models/recipe.model";
 import User from "../../models/user.model";
 
@@ -38,7 +39,12 @@ export class ListController {
               return { ...comment.toJSON(), replied_comments: commentUser, commentatorId: commentator };
             }),
           );
-          return { ...item.toJSON(), ingredient: fullIngredients, comments: updated_comment };
+          const likesCount = await Like.count({
+            where: {
+              RecipeId: item.id,
+            },
+          });
+          return { ...item.toJSON(), ingredient: fullIngredients, comments: updated_comment, likes: likesCount };
         }),
       );
       if (updatedRecipes) {
@@ -67,7 +73,32 @@ export class ListController {
                 fullIngredients.push(ingredientDatabase);
               }),
             );
-            return { ...item.toJSON(), ingredient: fullIngredients };
+            const comments = (await Comment.findAll({ where: { recipeId: item.id } })) as any;
+            const updated_comment = await Promise.all(
+              comments.map(async comment => {
+                const commentatorId = comment.commentatorId;
+                const commentUserId = comment.commentId;
+                const commentUser = [];
+                if (commentUserId) {
+                  const commentUsers = await User.findOne({ where: { id: commentUserId } });
+                  const replied_commnet = {
+                    commentUser: commentUsers,
+                    replie: comment.comment,
+                  };
+                  commentUser.push(replied_commnet);
+                }
+
+                const commentator = await User.findOne({ where: { id: commentatorId } });
+
+                return { ...comment.toJSON(), replied_comments: commentUser, commentatorId: commentator };
+              }),
+            );
+            const likesCount = await Like.count({
+              where: {
+                RecipeId: item.id,
+              },
+            });
+            return { ...item.toJSON(), ingredient: fullIngredients, comments: updated_comment, likes: likesCount };
           }),
         );
 
