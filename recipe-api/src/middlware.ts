@@ -21,7 +21,7 @@ export class Middleware {
     const id = req.body.decoded.id;
     const user = User.findOne({ where: { id: id } }) as any;
     if (user.id !== 1) {
-      return res.status(404).json({ message: "you are not authorized!!" });
+      return res.status(401).json({ message: "you are not authorized!!" });
     } else {
       console.log("admin authorized!!");
 
@@ -32,7 +32,7 @@ export class Middleware {
     const id = req.body.decoded.id;
     const user = (await User.findOne({ where: { id: id } })) as any;
     if (user.block_flag === 1) {
-      return res.status(404).json({ message: "User can not have access by admin" });
+      return res.status(401).json({ message: "User can not have access by admin" });
     } else {
       console.log("user is not blocked!");
       next();
